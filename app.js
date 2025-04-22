@@ -32,6 +32,7 @@ module.exports = { pool };
 const booksRouter = require('./routes/books');
 const donorsRouter = require('./routes/donors');
 const donationsRouter = require('./routes/donations');
+const chatRouter = require('./routes/chat');
 
 // 使用路由
 app.get('/', async (req, res) => {
@@ -50,9 +51,6 @@ app.get('/', async (req, res) => {
   app.use('/book', booksRouter);
   app.use('/donors', donorsRouter);
   app.use('/donations', donationsRouter);
-app.use('/book', booksRouter);
-app.use('/donors', donorsRouter);
-app.use('/donations', donationsRouter);
 
 // 其他路由
 const rewardsRouter = require('./routes/rewards');
@@ -60,6 +58,7 @@ const redemptionsRouter = require('./routes/redemptions');
 
 app.use('/rewards', rewardsRouter);
 app.use('/redemptions', redemptionsRouter);
+app.use('/api/chat', chatRouter); // 添加聊天API路由
 
 // 启动服务器（最后一步）
 app.listen(port, () => {
