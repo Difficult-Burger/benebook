@@ -1,0 +1,85 @@
+// BeneBook项目架构与流程
+digraph "BeneBook系统流程图" {
+	dpi=300 rankdir=TB size="11,8"
+	node [fillcolor=lightblue fontname="Microsoft YaHei" shape=box style=filled]
+	edge [fontname="Microsoft YaHei"]
+	fontname="Microsoft YaHei" fontsize=24 label="BeneBook系统流程图"
+	subgraph cluster_architecture {
+		fillcolor=lightyellow fontname="Microsoft YaHei" label="系统架构" style=filled
+		frontend [label="前端
+(EJS模板引擎)" shape=component]
+		backend [label="后端
+(Node.js + Express)" shape=component]
+		database [label="数据库
+(MySQL)" shape=cylinder]
+		frontend -> backend [label="HTTP请求"]
+		backend -> frontend [label="渲染页面"]
+		backend -> database [label="查询/存储数据"]
+		database -> backend [label="返回数据"]
+	}
+	subgraph cluster_login {
+		fillcolor=lightcyan fontname="Microsoft YaHei" label="用户注册/登录流程" style=filled
+		input_phone [label="输入手机号"]
+		verify_user [label="验证用户信息"]
+		create_user [label="创建用户记录"]
+		redirect_home [label="重定向到首页"]
+		input_phone -> verify_user
+		verify_user -> create_user
+		create_user -> redirect_home
+	}
+	subgraph cluster_donation {
+		fillcolor=lightpink fontname="Microsoft YaHei" label="书籍捐赠流程" style=filled
+		book_info [label="填写书籍信息"]
+		submit_donation [label="提交捐赠表单"]
+		save_book [label="保存书籍信息"]
+		record_donation [label="记录捐赠信息"]
+		update_points [label="更新用户积分"]
+		thank_letter [label="生成环保感谢信"]
+		book_info -> submit_donation
+		submit_donation -> save_book
+		save_book -> record_donation
+		record_donation -> update_points
+		record_donation -> thank_letter
+	}
+	subgraph cluster_redemption {
+		fillcolor=lightgreen fontname="Microsoft YaHei" label="积分兑换流程" style=filled
+		browse_rewards [label="浏览奖励商品"]
+		select_item [label="选择兑换物品"]
+		submit_redemption [label="提交兑换请求"]
+		verify_points [label="验证积分余额"]
+		record_redemption [label="记录兑换信息"]
+		deduct_points [label="扣减用户积分"]
+		reduce_stock [label="减少物品库存"]
+		browse_rewards -> select_item
+		select_item -> submit_redemption
+		submit_redemption -> verify_points
+		verify_points -> record_redemption
+		record_redemption -> deduct_points
+		deduct_points -> reduce_stock
+	}
+	subgraph cluster_database {
+		fillcolor=lavender fontname="Microsoft YaHei" label="数据库设计" style=filled
+		book_table [label="Book表
+(书籍信息)" shape=folder]
+		donor_table [label="Donor表
+(捐赠者信息)" shape=folder]
+		donation_table [label="Donation表
+(捐赠记录)" shape=folder]
+		reward_table [label="RewardItem表
+(奖励物品)" shape=folder]
+		redemption_table [label="Redemption表
+(兑换记录)" shape=folder]
+		config_table [label="SystemConfig表
+(系统配置)" shape=folder]
+		letter_table [label="ThankYouLetter表
+(感谢信)" shape=folder]
+		donor_table -> donation_table
+		book_table -> donation_table
+		donation_table -> letter_table
+		donor_table -> redemption_table
+		reward_table -> redemption_table
+		config_table -> letter_table [label="环保数据计算"]
+	}
+	redirect_home -> browse_rewards [style=dashed]
+	update_points -> browse_rewards [label="积分可用于兑换" style=dashed]
+}

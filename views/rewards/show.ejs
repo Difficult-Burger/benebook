@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - Benebook</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/" class="text-decoration-none">首页</a></li>
+        <li class="breadcrumb-item"><a href="/rewards" class="text-decoration-none">积分商城</a></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= reward.item_name %></li>
+      </ol>
+    </nav>
+
+    <div class="row g-4">
+      <div class="col-md-4 mb-4">
+        <div class="card">
+          <div class="bg-light text-center p-3" style="height: 300px; display: flex; align-items: center; justify-content: center;">
+            <% if (reward.image_url) { %>
+              <img src="<%= reward.image_url %>" alt="<%= reward.item_name %>" style="max-height: 280px; max-width: 100%;">
+            <% } else { %>
+              <span class="text-muted">暂无图片</span>
+            <% } %>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-8">
+        <h1 class="mb-3"><%= reward.item_name %></h1>
+        <div class="mb-4">
+          <span class="badge bg-danger me-2">所需积分: <%= reward.required_points %></span>
+          <span class="badge bg-info">库存: <%= reward.stock %></span>
+        </div>
+
+        <% if (reward.stock > 0) { %>
+          <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+              <h2 class="h4 mb-0">兑换此礼品</h2>
+            </div>
+            <div class="card-body">
+              <form action="/rewards/redeem" method="POST">
+                <input type="hidden" name="item_id" value="<%= reward.item_id %>">
+                
+                <div class="mb-3">
+                  <label for="donor_phone" class="form-label">选择捐赠者</label>
+                  <select class="form-select" id="donor_phone" name="donor_phone" required>
+                    <option value="">请选择...</option>
+                    <% donors.forEach(donor => { %>
+                      <option value="<%= donor.donor_phone %>" 
+                        <%= donor.total_points < reward.required_points ? 'disabled' : '' %>>
+                        <%= donor.nickname %> - <%= donor.total_points %> 积分
+                        <%= donor.total_points < reward.required_points ? '(积分不足)' : '' %>
+                      </option>
+                    <% }) %>
+                  </select>
+                </div>
+                
+                <div class="mb-3">
+                  <label for="quantity" class="form-label">兑换数量</label>
+                  <input type="number" class="form-control" id="quantity" name="quantity" min="1" max="<%= reward.stock %>" value="1" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">确认兑换</button>
+              </form>
+            </div>
+          </div>
+        <% } else { %>
+          <div class="alert alert-warning">
+            <strong>抱歉!</strong> 该礼品暂时缺货。
+          </div>
+        <% } %>
+
+        <div class="card">
+          <div class="card-header">
+            <h3 class="h5 mb-0">已兑换次数</h3>
+          </div>
+          <div class="card-body">
+            <p class="h1 text-center"><%= reward.redeemed_count %></p>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <a href="/rewards" class="btn btn-primary mt-3">返回商城</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

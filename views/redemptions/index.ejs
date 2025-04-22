@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container py-5">
+    <header class="pb-3 mb-4 border-bottom">
+      <div class="d-flex justify-content-between align-items-center">
+        <h1 class="display-5 fw-bold">兑换记录</h1>
+        <div>
+          <a href="/" class="btn btn-outline-primary me-2">书籍列表</a>
+          <a href="/donors" class="btn btn-outline-success me-2">捐赠者</a>
+          <a href="/donations" class="btn btn-outline-info me-2">捐赠记录</a>
+          <a href="/rewards" class="btn btn-outline-danger">积分商城</a>
+        </div>
+      </div>
+    </header>
+
+    <% if (redemptions && redemptions.length > 0) { %>
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>兑换日期</th>
+              <th>捐赠者</th>
+              <th>物品</th>
+              <th>数量</th>
+              <th>消耗积分</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% redemptions.forEach(redemption => { %>
+              <tr>
+                <td><%= redemption.redemption_id %></td>
+                <td><%= new Date(redemption.redeem_time).toLocaleString() %></td>
+                <td><%= redemption.donor_name %></td>
+                <td><%= redemption.item_name %></td>
+                <td><%= redemption.redeem_quantity %></td>
+                <td><%= redemption.redeem_quantity * redemption.required_points %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <div class="alert alert-info">
+        暂无兑换记录。
+      </div>
+    <% } %>
+    
+    <div class="mt-4">
+      <a href="/rewards" class="btn btn-primary">去兑换礼品</a>
+    </div>
+  </div>
+</body>
+</html>

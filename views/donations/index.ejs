@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/" class="text-decoration-none">首页</a></li>
+        <li class="breadcrumb-item active" aria-current="page">捐赠记录</li>
+      </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="h2">捐赠记录</h1>
+      <a href="/donations/new" class="btn btn-primary">添加新捐赠</a>
+    </div>
+
+    <% if (donations && donations.length > 0) { %>
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>捐赠日期</th>
+              <th>捐赠者</th>
+              <th>书籍</th>
+              <th>数量</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% donations.forEach(donation => { %>
+              <tr>
+                <td><%= donation.donation_id %></td>
+                <td><%= new Date(donation.donation_time).toLocaleString() %></td>
+                <td><%= donation.donor_name %></td>
+                <td><%= donation.book_title %></td>
+                <td><%= donation.donation_quantity %></td>
+                <td>
+                  <a href="/donations/<%= donation.donation_id %>" class="btn btn-sm btn-info">查看</a>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <div class="alert alert-info">
+        暂无捐赠记录，请添加捐赠记录。
+      </div>
+    <% } %>
+    
+    <div class="mt-4">
+      <a href="/" class="btn btn-outline-secondary">返回首页</a>
+    </div>
+  </div>
+</body>
+</html>

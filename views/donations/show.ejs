@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - Benebook</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/" class="text-decoration-none">首页</a></li>
+        <li class="breadcrumb-item"><a href="/donations" class="text-decoration-none">捐赠记录</a></li>
+        <li class="breadcrumb-item active" aria-current="page">捐赠详情 #<%= donation.donation_id %></li>
+      </ol>
+    </nav>
+
+    <div class="row mb-5">
+      <div class="col-md-6">
+        <div class="card mb-4">
+          <div class="card-header bg-primary text-white">
+            <h2 class="h4 mb-0">捐赠信息</h2>
+          </div>
+          <div class="card-body">
+            <table class="table table-borderless">
+              <tbody>
+                <tr>
+                  <th class="w-25">捐赠者:</th>
+                  <td>
+                    <a href="/donors/<%= donation.donor_phone %>"><%= donation.donor_name %></a>
+                  </td>
+                </tr>
+                <tr>
+                  <th>书籍:</th>
+                  <td><%= donation.book_title %></td>
+                </tr>
+                <tr>
+                  <th>数量:</th>
+                  <td><%= donation.donation_quantity %> 本</td>
+                </tr>
+                <tr>
+                  <th>捐赠日期:</th>
+                  <td><%= new Date(donation.donation_time).toLocaleString() %></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <% if (letter) { %>
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header bg-success text-white">
+              <h2 class="h4 mb-0">环保影响</h2>
+            </div>
+            <div class="card-body">
+              <div class="row text-center">
+                <div class="col-6 mb-3">
+                  <h3 class="h2"><%= letter.extended_lifecycle ? Number(letter.extended_lifecycle).toFixed(1) : '0.0' %></h3>
+                  <p class="text-muted">延长书籍生命周期(年)</p>
+                </div>
+                <div class="col-6 mb-3">
+                  <h3 class="h2"><%= letter.saved_co2 ? Number(letter.saved_co2).toFixed(1) : '0.0' %></h3>
+                  <p class="text-muted">减少碳排放(kg)</p>
+                </div>
+                <div class="col-6">
+                  <h3 class="h2"><%= letter.saved_trees ? Number(letter.saved_trees).toFixed(1) : '0.0' %></h3>
+                  <p class="text-muted">保护树木(棵)</p>
+                </div>
+                <div class="col-6">
+                  <h3 class="h2">¥<%= letter.public_fund ? Number(letter.public_fund).toFixed(2) : '0.00' %></h3>
+                  <p class="text-muted">公益基金贡献</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% } %>
+    </div>
+    
+    <div class="mt-4">
+        <a href="/donations" class="btn btn-outline-secondary me-2">返回捐赠记录列表</a>
+        <a href="/donors/<%= donation.donor_phone %>" class="btn btn-outline-primary me-2">查看捐赠者</a>
+        <% if (letter) { %>
+          <a href="/donations/<%= donation.donation_id %>/thankyou" class="btn btn-success">查看感谢信</a>
+        <% } %>
+      </div>
+  </div>
+</body>
+</html>

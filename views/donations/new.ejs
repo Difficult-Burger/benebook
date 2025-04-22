@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/" class="text-decoration-none">首页</a></li>
+        <li class="breadcrumb-item"><a href="/donations" class="text-decoration-none">捐赠记录</a></li>
+        <li class="breadcrumb-item active" aria-current="page">添加新捐赠</li>
+      </ol>
+    </nav>
+
+    <h1 class="h2 mb-4">添加新捐赠</h1>
+
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <form action="/donations" method="POST">
+              <div class="mb-3">
+                <label for="donor_phone" class="form-label">捐赠者 *</label>
+                <select class="form-select" id="donor_phone" name="donor_phone" required>
+                  <option value="">选择捐赠者</option>
+                  <% donors.forEach(donor => { %>
+                    <option value="<%= donor.donor_phone %>" <%= selectedDonor && selectedDonor.donor_phone === donor.donor_phone ? 'selected' : '' %>>
+                      <%= donor.nickname %> (<%= donor.donor_phone %>)
+                    </option>
+                  <% }) %>
+                </select>
+                <div class="form-text">
+                  <a href="/donors/new" target="_blank">添加新捐赠者</a>
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <label for="book_id" class="form-label">书籍 *</label>
+                <select class="form-select" id="book_id" name="book_id" required>
+                  <option value="">选择书籍</option>
+                  <% books.forEach(book => { %>
+                    <option value="<%= book.book_id %>">
+                      <%= book.title %> - <%= book.author || '未知作者' %>
+                    </option>
+                  <% }) %>
+                </select>
+              </div>
+              
+              <div class="mb-3">
+                <label for="donation_quantity" class="form-label">数量 *</label>
+                <input type="number" class="form-control" id="donation_quantity" name="donation_quantity" min="1" value="1" required>
+              </div>
+              
+              <div class="alert alert-info">
+                <small>提交捐赠后，系统将自动计算积分并生成感谢信。</small>
+              </div>
+              
+              <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-primary">保存</button>
+                <a href="/donations" class="btn btn-outline-secondary">取消</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

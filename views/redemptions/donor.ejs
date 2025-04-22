@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/" class="text-decoration-none">首页</a></li>
+        <li class="breadcrumb-item"><a href="/redemptions" class="text-decoration-none">兑换记录</a></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= donor.nickname %> 的兑换记录</li>
+      </ol>
+    </nav>
+
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <h2 class="h4 mb-0">捐赠者信息</h2>
+          </div>
+          <div class="card-body">
+            <p><strong>姓名:</strong> <%= donor.nickname %></p>
+            <p><strong>手机号:</strong> <%= donor.donor_phone %></p>
+            <p><strong>当前积分:</strong> <span class="badge bg-success"><%= donor.total_points %></span></p>
+            <a href="/donors/<%= donor.donor_phone %>" class="btn btn-outline-primary btn-sm">查看完整资料</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="h3 mb-3">兑换记录</h2>
+    
+    <% if (redemptions && redemptions.length > 0) { %>
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>兑换日期</th>
+              <th>物品名称</th>
+              <th>数量</th>
+              <th>消耗积分</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% redemptions.forEach(redemption => { %>
+              <tr>
+                <td><%= new Date(redemption.redeem_time).toLocaleString() %></td>
+                <td><%= redemption.item_name %></td>
+                <td><%= redemption.redeem_quantity %></td>
+                <td><%= redemption.redeem_quantity * redemption.required_points %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <div class="alert alert-info">
+        该捐赠者暂无兑换记录。
+      </div>
+    <% } %>
+    
+    <div class="mt-4">
+      <a href="/redemptions" class="btn btn-outline-secondary me-2">返回兑换列表</a>
+      <a href="/rewards" class="btn btn-primary">去兑换礼品</a>
+    </div>
+  </div>
+</body>
+</html>
