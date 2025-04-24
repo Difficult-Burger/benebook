@@ -1,18 +1,18 @@
-闲聊问答测试案例:
+Casual Chat Test Cases:
 
-你好，你是谁？
-这个网站是做什么的？
-捐赠书籍有什么好处？
-如何获得积分？
-我是lcdk，我可以兑换什么奖励？
+Hello, who are you?
+What is this website for?
+What are the benefits of donating books?
+How to earn points?
+I am lcdk, what rewards can I redeem?
 
-数据请求测试案例:
+Data Request Test Cases:
 
-查询价格最贵的三本书
-显示所有奇幻类别的书籍
-哪位捐赠者贡献的书籍最多？
-这里面J.K.罗琳的书有哪些
-统计各类别书籍的平均价格
-查找价格低于40元的书籍
-最近一个月的捐赠记录有哪些？
-哪本书被捐赠的次数最多？
+Find out the three most expensive books
+Show all books in the fantasy category
+Which donor has contributed the most books?
+What books by J.K. Rowling are here
+Calculate the average price of books by category
+Find books with prices below $40
+What donation records are there from the last month?
+Which book has been donated the most times?

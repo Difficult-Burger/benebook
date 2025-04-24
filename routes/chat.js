@@ -3,91 +3,91 @@ const router = express.Router();
 const { pool } = require('../db');
 const axios = require('axios');
 
-// DeepSeek API 配置
+// DeepSeek API Configuration
 const DEEPSEEK_API_KEY = 'sk-95f78a6e048745e2801755a7b79f9cf2';
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 
-// 存储聊天历史
+// Store chat history
 let chatHistory = [];
 
-// 检查消息是否为数据请求
+// Check if the message is a data request
 function isDataRequest(message) {
-  console.log("正在判断是否为数据请求:", message);
+  console.log("Checking if this is a data request:", message);
   
-  // 首先检查是否是明确的闲聊问题
+  // First check if it's clearly a casual chat question
   const chatPatterns = [
-    /什么好处/i, /有什么用/i, /怎么样/i, /如何操作/i, /为什么要/i, 
-    /可以吗/i, /能不能/i, /是不是/i, /介绍一下/i, /说明一下/i, 
-    /解释一下/i, /帮助我/i, /请问你/i, /谢谢/i, /你好/i, /你是谁/i
+    /what benefit/i, /what use/i, /how is it/i, /how to operate/i, /why should/i, 
+    /is it possible/i, /can you/i, /is it/i, /introduce/i, /explain/i, 
+    /help me/i, /may i ask/i, /thank you/i, /hello/i, /who are you/i
   ];
   
-  // 如果匹配到闲聊模式，直接返回false
+  // If matches chat pattern, return false directly
   if (chatPatterns.some(pattern => pattern.test(message))) {
-    console.log("匹配到闲聊模式");
+    console.log("Matched casual chat pattern");
     return false;
   }
   
-  // 明确的数据查询模式（优先级最高）
+  // Clear data query patterns (highest priority)
   const clearDataQueryPatterns = [
-    // 书籍相关查询
-    /查询.*书/i, /显示.*书/i, /列出.*书/i, /找.*书/i,
-    /查询.*价格/i, /最贵的/i, /最便宜的/i, /平均价格/i,
-    /统计.*分类/i, /统计.*类别/i, /分类的书/i, 
-    /多少本书/i, /哪些书/i, /哪本书/i, /哪几本/i,
+    // Book related queries
+    /query.*book/i, /show.*book/i, /list.*book/i, /find.*book/i,
+    /query.*price/i, /most expensive/i, /cheapest/i, /average price/i,
+    /statistics.*category/i, /count.*category/i, /books in category/i, 
+    /how many books/i, /which books/i, /which book/i, /which ones/i,
     
-    // 作者相关查询
-    /列出.*作品/i, /显示.*作品/i, /查询.*作品/i, /查找.*作品/i,
-    /.*的书/i, /.*的作品/i, /.*写的/i, /.*著作/i,
+    // Author related queries
+    /list.*works/i, /show.*works/i, /query.*works/i, /find.*works/i,
+    /.*'s book/i, /.*'s works/i, /written by.*/i, /.*publications/i,
     
-    // 捐赠者相关查询
-    /哪位捐赠者/i, /哪个捐赠者/i, /捐赠者.*最多/i, /捐赠.*最多/i,
-    /贡献.*最多/i, /贡献.*书籍/i, /捐赠量/i, /捐赠.*排名/i,
-    /谁捐赠/i, /谁的捐赠/i, /谁贡献/i, /捐赠者.*排行/i,
-    /积分最多/i, /积分.*排名/i, /哪位.*积分/i,
+    // Donor related queries
+    /which donor/i, /which benefactor/i, /donor.*most/i, /donated.*most/i,
+    /contributed.*most/i, /contributed.*books/i, /donation volume/i, /donation.*ranking/i,
+    /who donated/i, /whose donation/i, /who contributed/i, /donor.*ranking/i,
+    /most points/i, /points.*ranking/i, /who.*points/i,
     
-    // 捐赠和兑换记录查询
-    /查询.*捐赠/i, /显示.*捐赠/i, /捐赠了.*书/i, /捐赠.*记录/i,
-    /兑换.*记录/i, /兑换了.*什么/i, /兑换.*最多/i, /兑换.*排名/i
+    // Donation and redemption record queries
+    /query.*donation/i, /show.*donation/i, /donated.*books/i, /donation.*record/i,
+    /redemption.*record/i, /redeemed.*what/i, /redeemed.*most/i, /redemption.*ranking/i
   ];
   
-  // 如果明确匹配数据查询模式，直接返回true
+  // If clearly matches data query pattern, return true directly
   if (clearDataQueryPatterns.some(pattern => pattern.test(message))) {
-    console.log("匹配到明确的数据查询模式");
+    console.log("Matched clear data query pattern");
     return true;
   }
   
-  // 然后检查是否包含数据查询关键词
+  // Then check if contains data query keywords
   const dataActionPatterns = [
-    /查询/i, /显示/i, /列出/i, /找出/i, /统计/i, /计算/i, 
-    /多少/i, /有哪些/i, /最多/i, /最大/i, /最少/i, /最小/i,
-    /最贵/i, /最便宜/i, /平均/i, /总共/i, /哪位/i, /哪个/i, /谁/i
+    /query/i, /show/i, /list/i, /find/i, /statistics/i, /calculate/i, 
+    /how many/i, /what are/i, /most/i, /maximum/i, /least/i, /minimum/i,
+    /most expensive/i, /cheapest/i, /average/i, /total/i, /which/i, /who/i
   ];
   
   const dataObjectPatterns = [
-    /数据库/i, /表格/i, /信息/i, /记录/i, /几本/i, 
-    /书籍/i, /书/i, /捐赠记录/i, /兑换记录/i, /积分/i,
-    /价格/i, /作者/i, /分类/i, /类别/i, /出版社/i,
-    /捐赠者/i, /捐赠/i, /贡献/i, /兑换/i, /作品/i
+    /database/i, /table/i, /information/i, /record/i, /how many/i, 
+    /books/i, /book/i, /donation record/i, /redemption record/i, /points/i,
+    /price/i, /author/i, /category/i, /publisher/i,
+    /donor/i, /donation/i, /contribution/i, /redemption/i, /works/i
   ];
   
-  // 同时包含动作词和对象词更可能是数据请求
+  // More likely to be a data request if contains both action and object words
   const isDataQuery = dataActionPatterns.some(pattern => pattern.test(message)) && 
          dataObjectPatterns.some(pattern => pattern.test(message));
          
-  console.log(`动作词匹配: ${dataActionPatterns.some(pattern => pattern.test(message))}`);
-  console.log(`对象词匹配: ${dataObjectPatterns.some(pattern => pattern.test(message))}`);
-  console.log(`最终判断为数据请求: ${isDataQuery}`);
+  console.log(`Action word match: ${dataActionPatterns.some(pattern => pattern.test(message))}`);
+  console.log(`Object word match: ${dataObjectPatterns.some(pattern => pattern.test(message))}`);
+  console.log(`Final determination as data request: ${isDataQuery}`);
   
   return isDataQuery;
 }
 
-// 构建数据请求的 prompt
+// Build prompt for data requests
 function buildDataRequestPrompt(message) {
-  return `你是一个数据库专家，需要根据用户的自然语言请求生成一个准确的SQL查询语句。
+  return `You are a database expert who needs to generate an accurate SQL query based on a user's natural language request.
 
-数据库是MySQL，包含以下表结构：
+The database is MySQL, with the following table structure:
 
-1. Book表 - 存储书籍信息
+1. Book table - Stores book information
 \`\`\`sql
 CREATE TABLE Book (
   book_id int NOT NULL AUTO_INCREMENT,
@@ -104,7 +104,7 @@ CREATE TABLE Book (
 )
 \`\`\`
 
-2. Donor表 - 存储捐赠者信息
+2. Donor table - Stores donor information
 \`\`\`sql
 CREATE TABLE Donor (
   donor_phone varchar(20) NOT NULL,
@@ -117,7 +117,7 @@ CREATE TABLE Donor (
 )
 \`\`\`
 
-3. Donation表 - 存储捐赠记录
+3. Donation table - Stores donation records
 \`\`\`sql
 CREATE TABLE Donation (
   donation_id int NOT NULL AUTO_INCREMENT,
@@ -131,7 +131,7 @@ CREATE TABLE Donation (
 )
 \`\`\`
 
-4. RewardItem表 - 存储奖励商品信息
+4. RewardItem table - Stores reward item information
 \`\`\`sql
 CREATE TABLE RewardItem (
   item_id int NOT NULL AUTO_INCREMENT,
@@ -144,7 +144,7 @@ CREATE TABLE RewardItem (
 )
 \`\`\`
 
-5. Redemption表 - 存储兑换记录
+5. Redemption table - Stores redemption records
 \`\`\`sql
 CREATE TABLE Redemption (
   redemption_id int NOT NULL AUTO_INCREMENT,
@@ -158,48 +158,48 @@ CREATE TABLE Redemption (
 )
 \`\`\`
 
-用户请求: "${message}"
+User request: "${message}"
 
-只返回一个有效的SQL查询语句，不要包含任何其他解释或文本。确保SQL语句语法正确且可以直接执行。`;
+Return only a valid SQL query without any other explanation or text. Ensure the SQL syntax is correct and can be executed directly.`;
 }
 
-// 构建闲聊的 prompt
+// Build prompt for casual chat
 function buildChatPrompt(message, history) {
-  const historyText = history.map(item => `${item.role === 'user' ? '用户' : '助手'}: ${item.content}`).join('\n');
+  const historyText = history.map(item => `${item.role === 'user' ? 'User' : 'Assistant'}: ${item.content}`).join('\n');
   
-  return `你是Benebook网站的智能助手，专门帮助用户了解关于我们书籍捐赠和积分兑换平台的信息。
+  return `You are the intelligent assistant for the Benebook website, specializing in helping users understand our book donation and points redemption platform.
   
-对话历史:
+Conversation history:
 ${historyText}
 
-用户: ${message}
+User: ${message}
 
-请尽可能友好和专业地回答用户的问题。`;
+Please answer the user's question as friendly and professionally as possible.`;
 }
 
-// 处理聊天消息的API接口
+// API endpoint for handling chat messages
 router.post('/message', async (req, res) => {
   try {
     const { message } = req.body;
     
     if (!message) {
-      return res.status(400).json({ error: '消息不能为空' });
+      return res.status(400).json({ error: 'Message cannot be empty' });
     }
     
-    // 添加用户消息到历史
+    // Add user message to history
     chatHistory.push({ role: 'user', content: message });
     
-    // 判断是数据请求还是闲聊
+    // Determine if it's a data request or casual chat
     const isDataReq = isDataRequest(message);
     
-    // 构建适当的prompt
+    // Build appropriate prompt
     const prompt = isDataReq 
       ? buildDataRequestPrompt(message) 
       : buildChatPrompt(message, chatHistory);
     
-    console.log("发送到DeepSeek的prompt:", prompt);
+    console.log("Prompt sent to DeepSeek:", prompt);
 
-    // 调用DeepSeek API
+    // Call DeepSeek API
     const response = await axios.post(
       DEEPSEEK_API_URL,
       {
@@ -215,12 +215,12 @@ router.post('/message', async (req, res) => {
     );
     
     const aiResponse = response.data.choices[0].message.content;
-    console.log("DeepSeek返回:", aiResponse);
+    console.log("DeepSeek response:", aiResponse);
     
-    // 如果是数据请求，执行SQL查询
+    // If it's a data request, execute SQL query
     if (isDataReq) {
       try {
-        // 提取SQL语句，去除可能的代码块标记
+        // Extract SQL statement, remove potential code block markers
         let sqlQuery = aiResponse.trim();
         if (sqlQuery.startsWith('```sql')) {
           sqlQuery = sqlQuery.replace(/```sql\n/, '').replace(/\n```$/, '');
@@ -228,37 +228,37 @@ router.post('/message', async (req, res) => {
           sqlQuery = sqlQuery.replace(/```\n/, '').replace(/\n```$/, '');
         }
         
-        console.log("执行SQL查询:", sqlQuery);
+        console.log("Executing SQL query:", sqlQuery);
         
-        // 执行SQL查询
+        // Execute SQL query
         const [results] = await pool.query(sqlQuery);
         
-        console.log("查询结果:", results);
+        console.log("Query results:", results);
         
-        // 格式化结果为用户友好的格式
+        // Format results in a user-friendly way
         let formattedResponse = '';
         
         if (results.length === 0) {
-          formattedResponse = '抱歉，没有找到符合条件的数据。';
+          formattedResponse = 'Sorry, no data matching your criteria was found.';
         } else {
-          // 根据查询类型和结果格式化响应
+          // Format response based on query type and results
           if (sqlQuery.toUpperCase().includes('GROUP BY')) {
-            // 分组聚合查询
-            formattedResponse = '查询结果：\n\n';
+            // Group aggregation query
+            formattedResponse = 'Query results:\n\n';
             results.forEach((row, index) => {
               const keys = Object.keys(row);
-              // 第一个字段通常是分组的键(如category)
+              // First field is usually the grouping key (like category)
               const groupKey = keys[0];
               const groupValue = row[groupKey];
               
               formattedResponse += `${groupValue}\n`;
               
-              // 添加其他字段（通常是聚合结果）
+              // Add other fields (usually aggregation results)
               keys.slice(1).forEach(key => {
                 const value = row[key];
-                // 如果是价格字段，添加货币符号
+                // Add currency symbol for price fields
                 if (key.includes('price') || key.includes('avg') || key.includes('sum')) {
-                  formattedResponse += `   ${key}: ¥${parseFloat(value).toFixed(2)}\n`;
+                  formattedResponse += `   ${key}: $${parseFloat(value).toFixed(2)}\n`;
                 } else {
                   formattedResponse += `   ${key}: ${value}\n`;
                 }
@@ -266,73 +266,73 @@ router.post('/message', async (req, res) => {
               formattedResponse += '\n';
             });
           } else if (sqlQuery.toUpperCase().includes('COUNT')) {
-            // 聚合查询（计数）
+            // Aggregation query (count)
             const countKey = Object.keys(results[0])[0];
             const countValue = results[0][countKey];
-            formattedResponse = `查询结果：${countValue}`;
+            formattedResponse = `Query result: ${countValue}`;
           } else if (sqlQuery.toUpperCase().includes('AVG') || 
                    sqlQuery.toUpperCase().includes('SUM') || 
                    sqlQuery.toUpperCase().includes('MAX') || 
                    sqlQuery.toUpperCase().includes('MIN')) {
-            // 其他聚合查询
+            // Other aggregation queries
             const aggregateKey = Object.keys(results[0])[0];
             const aggregateValue = results[0][aggregateKey];
-            formattedResponse = `查询结果：${aggregateValue}`;
+            formattedResponse = `Query result: ${aggregateValue}`;
           } else if (sqlQuery.toUpperCase().includes('BOOK') && 
                    (sqlQuery.toUpperCase().includes('SELECT *') || 
                     sqlQuery.toUpperCase().includes('TITLE'))) {
-            // 书籍相关查询
-            formattedResponse = '查询结果：\n\n';
+            // Book-related queries
+            formattedResponse = 'Query results:\n\n';
             results.forEach((book, index) => {
-              formattedResponse += `${index + 1}. 《${book.title}》\n`;
-              if (book.author) formattedResponse += `   作者：${book.author}\n`;
-              if (book.category) formattedResponse += `   分类：${book.category}\n`;
-              if (book.publisher) formattedResponse += `   出版社：${book.publisher}\n`;
-              if (book.original_price) formattedResponse += `   价格：¥${book.original_price}\n`;
+              formattedResponse += `${index + 1}. "${book.title}"\n`;
+              if (book.author) formattedResponse += `   Author: ${book.author}\n`;
+              if (book.category) formattedResponse += `   Category: ${book.category}\n`;
+              if (book.publisher) formattedResponse += `   Publisher: ${book.publisher}\n`;
+              if (book.original_price) formattedResponse += `   Price: $${book.original_price}\n`;
               formattedResponse += '\n';
             });
           } else if (sqlQuery.toUpperCase().includes('DONOR')) {
-            // 捐赠者相关查询
-            formattedResponse = '查询结果：\n\n';
+            // Donor-related queries
+            formattedResponse = 'Query results:\n\n';
             results.forEach((donor, index) => {
               formattedResponse += `${index + 1}. ${donor.nickname}\n`;
-              if (donor.total_points !== undefined) formattedResponse += `   积分：${donor.total_points}\n`;
-              if (donor.email) formattedResponse += `   邮箱：${donor.email}\n`;
+              if (donor.total_points !== undefined) formattedResponse += `   Points: ${donor.total_points}\n`;
+              if (donor.email) formattedResponse += `   Email: ${donor.email}\n`;
               formattedResponse += '\n';
             });
           } else if (sqlQuery.toUpperCase().includes('DONATION')) {
-            // 捐赠记录相关查询
-            formattedResponse = '查询结果：\n\n';
+            // Donation record related queries
+            formattedResponse = 'Query results:\n\n';
             results.forEach((donation, index) => {
-              formattedResponse += `${index + 1}. 捐赠ID：${donation.donation_id}\n`;
-              if (donation.donor_phone) formattedResponse += `   捐赠者：${donation.donor_phone}\n`;
-              if (donation.book_id) formattedResponse += `   书籍ID：${donation.book_id}\n`;
-              if (donation.donation_quantity) formattedResponse += `   数量：${donation.donation_quantity}\n`;
+              formattedResponse += `${index + 1}. Donation ID: ${donation.donation_id}\n`;
+              if (donation.donor_phone) formattedResponse += `   Donor: ${donation.donor_phone}\n`;
+              if (donation.book_id) formattedResponse += `   Book ID: ${donation.book_id}\n`;
+              if (donation.donation_quantity) formattedResponse += `   Quantity: ${donation.donation_quantity}\n`;
               if (donation.donation_time) {
                 const date = new Date(donation.donation_time);
-                formattedResponse += `   时间：${date.toLocaleString('zh-CN')}\n`;
+                formattedResponse += `   Time: ${date.toLocaleString('en-US')}\n`;
               }
               formattedResponse += '\n';
             });
           } else if (sqlQuery.toUpperCase().includes('REWARD')) {
-            // 奖励相关查询
-            formattedResponse = '查询结果：\n\n';
+            // Reward related queries
+            formattedResponse = 'Query results:\n\n';
             results.forEach((reward, index) => {
-              formattedResponse += `${index + 1}. ${reward.item_name || '奖品'}\n`;
-              if (reward.required_points) formattedResponse += `   所需积分：${reward.required_points}\n`;
-              if (reward.stock) formattedResponse += `   库存：${reward.stock}\n`;
+              formattedResponse += `${index + 1}. ${reward.item_name || 'Reward item'}\n`;
+              if (reward.required_points) formattedResponse += `   Required points: ${reward.required_points}\n`;
+              if (reward.stock) formattedResponse += `   Stock: ${reward.stock}\n`;
               formattedResponse += '\n';
             });
           } else {
-            // 其他类型查询，通用格式化
-            formattedResponse = '查询结果：\n\n';
+            // Other types of queries, generic formatting
+            formattedResponse = 'Query results:\n\n';
             results.forEach((item, index) => {
-              formattedResponse += `项目 ${index + 1}:\n`;
+              formattedResponse += `Item ${index + 1}:\n`;
               Object.entries(item).forEach(([key, value]) => {
                 if (value !== null && value !== undefined) {
-                  // 格式化日期类型
+                  // Format date types
                   if (value instanceof Date) {
-                    formattedResponse += `   ${key}: ${value.toLocaleString('zh-CN')}\n`;
+                    formattedResponse += `   ${key}: ${value.toLocaleString('en-US')}\n`;
                   } else {
                     formattedResponse += `   ${key}: ${value}\n`;
                   }
@@ -343,15 +343,15 @@ router.post('/message', async (req, res) => {
           }
         }
         
-        // 添加助手消息到历史
-        const responseMessage = `根据您的请求"${message}"，${formattedResponse}`;
+        // Add assistant message to history
+        const responseMessage = `Based on your request "${message}", ${formattedResponse}`;
         
         chatHistory.push({ 
           role: 'assistant', 
           content: responseMessage
         });
         
-        // 返回结果和查询
+        // Return results and query
         return res.json({ 
           response: responseMessage,
           history: chatHistory,
@@ -359,10 +359,10 @@ router.post('/message', async (req, res) => {
           results: results
         });
       } catch (sqlError) {
-        console.error('SQL执行错误:', sqlError);
+        console.error('SQL execution error:', sqlError);
         
-        // SQL错误时的响应
-        const errorMessage = `抱歉，我无法处理您的数据请求。错误信息: ${sqlError.message}`;
+        // Response for SQL errors
+        const errorMessage = `Sorry, I couldn't process your data request. Error: ${sqlError.message}`;
         
         chatHistory.push({ 
           role: 'assistant', 
@@ -376,7 +376,7 @@ router.post('/message', async (req, res) => {
         });
       }
     } else {
-      // 闲聊回复直接返回
+      // Direct return for casual chat replies
       chatHistory.push({ role: 'assistant', content: aiResponse });
       
       return res.json({ 
@@ -385,20 +385,20 @@ router.post('/message', async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('处理聊天消息时出错:', error);
-    res.status(500).json({ error: '服务器错误', details: error.message });
+    console.error('Error processing chat message:', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 
-// 获取聊天历史
+// Get chat history
 router.get('/history', (req, res) => {
   res.json({ history: chatHistory });
 });
 
-// 清除聊天历史
+// Clear chat history
 router.post('/clear', (req, res) => {
   chatHistory = [];
-  res.json({ message: '聊天历史已清除', history: chatHistory });
+  res.json({ message: 'Chat history cleared', history: chatHistory });
 });
 
 module.exports = router;

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,7 +21,7 @@
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
     
-    /* 页面布局 */
+    /* Page layout */
     .page-container {
       display: flex;
       width: 100%;
@@ -34,12 +34,12 @@
       padding: 20px;
     }
     
-    /* 书籍卡片样式调整 */
+    /* Book card style adjustments */
     .book-image {
       height: 150px;
     }
     
-    /* 聊天框样式 */
+    /* Chat sidebar styles */
     .chat-sidebar {
       width: 320px;
       position: fixed;
@@ -118,7 +118,7 @@
       background-color: #0069d9;
     }
     
-    /* 响应式调整 */
+    /* Responsive adjustments */
     @media (max-width: 992px) {
       .page-container {
         flex-direction: column;
@@ -142,15 +142,15 @@
 </head>
 <body>
   <div class="page-container">
-    <!-- 主内容区域 -->
+    <!-- Main content area -->
     <div class="main-content">
       <header class="pb-3 mb-4 border-bottom">
         <div class="d-flex justify-content-between align-items-center">
-          <h1 class="display-5 fw-bold">Benebook 书籍列表</h1>
+          <h1 class="display-5 fw-bold">Benebook Book List</h1>
           <div>
-            <a href="/donors" class="btn btn-outline-success me-2">捐赠者</a>
-            <a href="/donations" class="btn btn-outline-primary">捐赠记录</a>
-            <a href="/rewards" class="btn btn-outline-danger me-2">积分商城</a>
+            <a href="/donors" class="btn btn-outline-success me-2">Donors</a>
+            <a href="/donations" class="btn btn-outline-primary">Donations</a>
+            <a href="/rewards" class="btn btn-outline-danger me-2">Points Shop</a>
           </div>
         </div>
       </header>
@@ -164,16 +164,16 @@
                   <% if (book.image_url) { %>
                     <img src="<%= book.image_url %>" alt="<%= book.title %>" style="max-height: 140px; max-width: 100%;">
                   <% } else { %>
-                    <span class="text-muted">暂无图片</span>
+                    <span class="text-muted">No Image</span>
                   <% } %>
                 </div>
                 <div class="card-body">
                   <h5 class="card-title"><%= book.title %></h5>
-                  <p class="card-text mb-1"><%= book.author || '未知作者' %></p>
-                  <p class="card-text text-muted small mb-2">分类: <%= book.category || '未分类' %></p>
+                  <p class="card-text mb-1"><%= book.author || 'Unknown Author' %></p>
+                  <p class="card-text text-muted small mb-2">Category: <%= book.category || 'Uncategorized' %></p>
                   <div class="d-flex justify-content-between align-items-center mt-3">
-                    <span class="fw-bold">¥<%= book.original_price %></span>
-                    <a href="/book/<%= book.book_id %>" class="btn btn-sm btn-primary">查看详情</a>
+                    <span class="fw-bold">$<%= book.original_price %></span>
+                    <a href="/book/<%= book.book_id %>" class="btn btn-sm btn-primary">View Details</a>
                   </div>
                 </div>
               </div>
@@ -181,26 +181,26 @@
           <% }) %>
         <% } else { %>
           <div class="col-12 text-center py-5">
-            <p class="text-muted">暂无书籍数据</p>
+            <p class="text-muted">No books available</p>
           </div>
         <% } %>
       </div>
     </div>
     
-    <!-- 聊天侧边栏 -->
+    <!-- Chat sidebar -->
     <div class="chat-sidebar" id="chatSidebar">
       <div class="chat-header">
-        <span>智能助手</span>
+        <span>Assistant</span>
       </div>
       <div class="chat-messages" id="chatMessages"></div>
       <div class="chat-input">
         <input 
           type="text" 
           id="messageInput" 
-          placeholder="请输入您的问题..." 
+          placeholder="Enter your question..." 
           autocomplete="off"
         >
-        <button id="sendButton">发送</button>
+        <button id="sendButton">Send</button>
       </div>
     </div>
   </div>
@@ -212,24 +212,24 @@
       const messageInput = document.getElementById('messageInput');
       const sendButton = document.getElementById('sendButton');
       
-      // 发送消息函数
+      // Send message function
       function sendMessage() {
         const message = messageInput.value.trim();
         if (!message) return;
         
-        // 禁用发送按钮和输入框
+        // Disable send button and input
         sendButton.disabled = true;
-        sendButton.innerText = '发送中...';
+        sendButton.innerText = 'Sending...';
         messageInput.disabled = true;
         
-        // 添加用户消息到聊天框
+        // Add user message to chat
         addMessage(message, 'user');
         messageInput.value = '';
         
-        // 显示加载状态
+        // Show loading status
         const loadingId = showLoading();
         
-        // 发送到后端
+        // Send to backend
         fetch('/api/chat/message', {
           method: 'POST',
           headers: {
@@ -239,44 +239,44 @@
         })
         .then(response => response.json())
         .then(data => {
-          // 移除加载状态
+          // Remove loading status
           removeLoading(loadingId);
           
-          // 添加AI回复到聊天框
+          // Add AI reply to chat
           addMessage(data.response, 'assistant');
           
-          // 自动滚动到底部
+          // Auto scroll to bottom
           scrollToBottom();
           
-          // 重新启用发送按钮和输入框
+          // Re-enable send button and input
           sendButton.disabled = false;
-          sendButton.innerText = '发送';
+          sendButton.innerText = 'Send';
           messageInput.disabled = false;
           messageInput.focus();
         })
         .catch(error => {
-          // 移除加载状态
+          // Remove loading status
           removeLoading(loadingId);
           
-          // 显示错误信息
-          addMessage('抱歉，发生了错误，请稍后再试。', 'assistant');
-          console.error('发送消息出错:', error);
+          // Show error message
+          addMessage('Sorry, an error occurred. Please try again later.', 'assistant');
+          console.error('Error sending message:', error);
           
-          // 重新启用发送按钮和输入框
+          // Re-enable send button and input
           sendButton.disabled = false;
-          sendButton.innerText = '发送';
+          sendButton.innerText = 'Send';
           messageInput.disabled = false;
           messageInput.focus();
         });
       }
       
-      // 添加消息到聊天框
+      // Add message to chat
       function addMessage(text, role) {
         const messageElement = document.createElement('div');
         messageElement.classList.add('message');
         messageElement.classList.add(role === 'user' ? 'user-message' : 'assistant-message');
         
-        // 处理文本中的换行符
+        // Handle line breaks in text
         const formattedText = text.replace(/\n/g, '<br>');
         messageElement.innerHTML = formattedText;
         
@@ -284,19 +284,19 @@
         scrollToBottom();
       }
       
-      // 显示加载状态
+      // Show loading status
       function showLoading() {
         const loadingId = Date.now().toString();
         const loadingElement = document.createElement('div');
         loadingElement.classList.add('message', 'assistant-message');
         loadingElement.id = `loading-${loadingId}`;
-        loadingElement.innerHTML = '正在思考...';
+        loadingElement.innerHTML = 'Thinking...';
         chatMessages.appendChild(loadingElement);
         scrollToBottom();
         return loadingId;
       }
       
-      // 移除加载状态
+      // Remove loading status
       function removeLoading(loadingId) {
         const loadingElement = document.getElementById(`loading-${loadingId}`);
         if (loadingElement) {
@@ -304,23 +304,23 @@
         }
       }
       
-      // 滚动到聊天框底部
+      // Scroll to bottom of chat
       function scrollToBottom() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
       }
       
-      // 监听发送按钮点击事件
+      // Listen for send button click
       sendButton.addEventListener('click', sendMessage);
       
-      // 监听输入框回车事件
+      // Listen for Enter key in input
       messageInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
           sendMessage();
         }
       });
       
-      // 添加欢迎消息
-      addMessage('您好！我是Benebook的智能助手，有什么可以帮助您的?', 'assistant');
+      // Add welcome message
+      addMessage('Hello! I am Benebook\'s intelligent assistant. How can I help you?', 'assistant');
     });
   </script>
 </body>

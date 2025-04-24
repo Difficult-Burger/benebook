@@ -6,45 +6,45 @@ const bodyParser = require('body-parser');
 const app = express();
 const port = 3000;
 
-// 设置视图引擎
+// Set up view engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 添加中间件
+// Add middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// 数据库连接池
+// Database connection pool
 const pool = mysql.createPool({
   host: 'localhost',
   user: 'root',
-  password: 'lcdk6666', // 你的MySQL密码
+  password: 'lcdk6666', // Your MySQL password
   database: 'benebook',
   waitForConnections: true,
   connectionLimit: 10
 });
 
-// 先导出pool，确保其他模块导入时能够使用
+// Export pool first, ensuring other modules can use it when imported
 module.exports = { pool };
 
-// 引入路由模块
+// Import route modules
 const booksRouter = require('./routes/books');
 const donorsRouter = require('./routes/donors');
 const donationsRouter = require('./routes/donations');
 const chatRouter = require('./routes/chat');
 
-// 使用路由
+// Use routes
 app.get('/', async (req, res) => {
     try {
       const [books] = await pool.query('SELECT * FROM Book');
       res.render('index', { 
-        title: 'Benebook - 书籍列表',
+        title: 'Benebook - Book List',
         books: books 
       });
     } catch (error) {
-      console.error('获取书籍失败:', error);
-      res.status(500).send('服务器错误: ' + error.message);
+      console.error('Failed to get books:', error);
+      res.status(500).send('Server error: ' + error.message);
     }
   });
   
@@ -52,15 +52,15 @@ app.get('/', async (req, res) => {
   app.use('/donors', donorsRouter);
   app.use('/donations', donationsRouter);
 
-// 其他路由
+// Other routes
 const rewardsRouter = require('./routes/rewards');
 const redemptionsRouter = require('./routes/redemptions');
 
 app.use('/rewards', rewardsRouter);
 app.use('/redemptions', redemptionsRouter);
-app.use('/api/chat', chatRouter); // 添加聊天API路由
+app.use('/api/chat', chatRouter); // Add chat API route
 
-// 启动服务器（最后一步）
+// Start server (last step)
 app.listen(port, () => {
-  console.log(`服务器已启动: http://localhost:${port}`);
+  console.log(`Server started: http://localhost:${port}`);
 });
