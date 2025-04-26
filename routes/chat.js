@@ -174,7 +174,7 @@ ${historyText}
 
 User: ${message}
 
-Please answer the user's question as friendly and professionally as possible.`;
+Please answer the user's question as friendly and professionally as possible. IMPORTANT: Format your response as plain text only. Do not use markdown formatting, bullet points, or any special formatting. Your response should be pure text that can be displayed directly in a simple chat interface.`;
 }
 
 // API endpoint for handling chat messages
